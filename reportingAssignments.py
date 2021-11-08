@@ -1,14 +1,24 @@
+#!/user/bin/python
+
 import json
+import sys
+
 stack = []
 data = []
+arguments = []
+
+arguments = sys.argv
+file = arguments[1]
+output = arguments[2]
+
 while True:
-    file = input("Enter the filename\n")
-    print("\nOpening " + file + '...\n')
     try:
         f = open(file,'r',encoding='ISO-8859-1')
         break
     except IOError:
         input("Error in file opening, please type correct filename\n")
+        print(file)
+        sys.exit()
 lineDict = {}
 highestIndentation = 0
 for line in f:
@@ -45,34 +55,34 @@ for line in f:
             stack.pop()
             break
         if(line[x] == '=' and x+1 < len(line) and x > 0 and line[x-1] != '>' 
-        and line[x+1]== '>' and "alert" in line):
+        and line[x+1]== '>' and "alert(" in line):
             y = x + 4
             variableName = ""
             while(line[y] != ' '):
                 variableName = variableName + line[y]
                 y = y + 1
-            while(line[y] != "'"):
+            while(line[y] != "="):
                 y = y + 1
-            y = y + 1
+            y = y + 2
             newString = ""
             while(y < len(line)):
                 newString = newString + line[y]
                 y = y + 1
-            print("this is new String: " + newString)
+            # print("this is new String: " + newString)
             splitString = newString.split("/var/www/html/")
-            print("this is splitString: " + splitString[0])
+            # print("this is splitString: " + splitString[0])
             myDictionary = {}
             myDictionary['function_name'] = stack[-1][2:]
             myDictionary['variable_name'] = variableName
             myDictionary['value'] = splitString[0]
             myDictionary['file_name'] = "/var/www/html/" + (splitString[1][:len(splitString[1]) - 1])
             data.append(myDictionary)
-            print("The function: " + stack[-1] + " line: " + line)
+            # print("The function: " + stack[-1] + " line: " + line)
             break
         if(line[x] == '=' or line[x] == '-' or line[x] == '>'):
             break
         x = x + 1
-with open('reportedAssignments.json', 'w') as file:
+with open(output+'.json', 'w') as file:
     file.write(json.dumps(data))
-print('Finished')
+# print('Finished')
 f.close()
